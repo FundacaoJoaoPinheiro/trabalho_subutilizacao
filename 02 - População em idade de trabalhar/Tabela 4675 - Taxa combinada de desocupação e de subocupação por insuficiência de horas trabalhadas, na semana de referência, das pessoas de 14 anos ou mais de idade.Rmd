@@ -91,7 +91,9 @@ dadosPNADc$variables <- dadosPNADc$variables %>%
     subocupados = 1 * (
       VD4004A == "Pessoas subocupadas"
     ),
-    ftp = 1 * (
+    combinada1 = coalesce(subocupados, desocupados
+    ),
+   ftp = 1 * (
       VD4003 == "Pessoas fora da força de trabalho e na força de trabalho potencial"
     ),
     ft = 1 * (
@@ -237,7 +239,7 @@ TCSIeD = (Subocupados por Insuficiência de Horas + Desocupados) / Força de Tra
 
 ```{r dados, echo=TRUE, warning=FALSE}
 
-tcsied <-  svyratio(numerator=~(subocupados==1 | desocupados==1), denominator=~(VD4001=="Pessoas na força de trabalho"),  design=dadosPNADc, na.rm=TRUE)
+tcsied <-  svyratio(numerator=~(combinada1==1), denominator=~(VD4001=="Pessoas na força de trabalho"),  design=dadosPNADc, na.rm=TRUE)
 
 knitr::kable(tcsied,
              caption = "Taxa combinada da subocupação por insuficiência de horas trabalhadas e da desocupação (TCSIeD), para os estratos geográficos - Minas Gerais - 2022")
