@@ -1,0 +1,248 @@
+---
+title: "Indicadores no R indicadores de outras formas de trabalho na PNADC anual"
+author: "Italo Mendonça"
+date: "27-novembro-2024"
+output:
+   bookdown::html_document2:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: kable
+    fig_caption: TRUE
+editor_options:
+  markdown:
+    wrap: 72
+bibliography: references.bib
+csl: associacao-brasileira-de-normas-tecnicas-ufrgs.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  # Esta linha de código é usada para definir opções globais para todos os trechos de código (chunks) encontrados no documento. o argumento "echo = TRUE" indica que o código contido em cada chunk deve ser exibido no documento final gerado a partir do arquivo R Markdown. Ou seja, quando o documento for renderizado (convertido para um formato final como PDF, HTML, etc.), o código R que foi escrito dentro de cada chunk aparecerá ao lado dos resultados de sua execução.
+```
+
+O objetivo deste tutorial é extrair os dados amostrais da PNADC anual de
+outras formas de trabalho com auxílio do pacote PNADcIBGE [@PNADcIBGE].
+
+# Pergunta orientadora
+
+Tabela 5436 - Rendimento médio mensal real das pessoas de 14 anos ou mais de idade ocupadas na semana de referência com rendimento de trabalho, habitualmente e efetivamente recebidos no trabalho principal e em todos os trabalhos, por sexo
+
+# Base de dados e conferência dos dados
+
+Os dados necessários para responder a pergunta proposta estão presentes
+na quinta visita da PNADC.
+
+```{r dados, echo=TRUE, warning=FALSE}
+# carrega as bibliotecas
+library(PNADcIBGE) # Carrega o pacote PNADcIBGE
+library(survey) # Carrega o pacote survey
+library(dplyr) # Carrega o pacote dplyr
+library(knitr) # Carrega o pacote knitr
+
+# definição de variáveis - cria um vetor com as variáveis que serão importadas da PNADc
+variaveis_selecionadas <- c(
+  "UF",
+  "VD4001",
+  "VD4002",
+  "V4013",
+  "VD4020",
+  "VD3005",
+  "V4012",
+  "VD4007",
+  "VD4009",
+  "VD4010",
+  "VD4011",
+  "VD4012",
+  "VD4013",
+  "V2007",
+  "V2010",
+  "V2009",
+  "VD4039",
+  "VD3004",
+  "VD3005",
+  "VD4019",
+  "VD4035"
+)
+
+# importando os dados do servidor do IBGE
+dadosPNADc <- get_pnadc(year = 2022,
+                        interview = 5,
+                        vars = variaveis_selecionadas, defyear=2023, defperiod=4, labels=TRUE, deflator=TRUE)
+
+options(survey.lonely.psu = "adjust", encoding="UTF-8")
+
+# Opção de vizualização de números
+# A linha de código a seguir instrui o ambiente a evitar a notação científica ao
+# imprimir números. Isso significa que números muito grandes ou muito pequenos
+# serão exibidos na sua forma completa, sem a utilização do formato exponencial
+# (como 1e+10 ou 1e-10).
+
+options(scipen = 999)
+
+# modifica e cria variáveis
+dadosPNADc$variables <- dadosPNADc$variables %>%
+  mutate(
+    one = 1,
+    ocupados = 1 * (
+      VD4002 == "Pessoas ocupadas"
+    ),
+     desocupados = 1 * (
+      VD4002 == "Pessoas desocupadas"
+    ),
+    rend = as.numeric(VD4017),
+    raca_cor = case_when(
+      V2010 == "Preta" | V2010 == "Parda" ~ "Preta ou parda",
+      V2010 == "Amarela"  |
+        V2010 == "Indígena" | V2010 == "Ignorado" ~ "Outras",
+      V2010 == "Branca" ~ "Branca"
+    ),
+    anosest = as.numeric(VD3005),
+          faixa_anosest = case_when(VD3005 < 1 ~ "0SemInstrucao",
+                                                   VD3005 >= 1 & VD3005 < 5 ~ "de1a4anos",
+                                                   VD3005 >= 5 & VD3005 < 9 ~ "de5a8anos",
+                                                   VD3005 >= 9 & VD3005 < 12 ~ "de9a11anos",
+                                                   VD3005 >=12 ~ "de12a+anos"),
+          faixa_anosest2 = case_when(VD3005 >= 0 & VD3005 < 12 ~ "de0a11anos",
+                                                   VD3005 >=12 ~ "de12a+anos"),
+    faixa_idade = case_when((V2009 >= 14 &
+                               V2009 <= 29) ~ "0De14a29anos",
+                            (V2009 >= 30 &
+                               V2009 <= 44) ~ "de30a44anos",
+                            (V2009 >= 45 &
+                               V2009 <= 59) ~ "de45a59anos",
+                            (V2009 >= 60) ~ "de60a+anos"
+    ),
+    estratos_geogr = case_when((
+      Estrato == "3110213" |
+        Estrato == "3110113" |
+        Estrato == "3110112" |
+        Estrato == "3110212" |
+        Estrato == "3110111" |
+        Estrato == "3110211"
+    ) ~ "01-Belo Horizonte",
+    (
+      Estrato == "3120011" |
+        Estrato == "3120013" |
+        Estrato == "3120020" |
+        Estrato == "3120012"
+    ) ~ "02-Entorno metropolitono de BH",
+    (Estrato == "3130011" |
+       Estrato == "3130012" |
+       Estrato == "3130020") ~ "03-Colar metropolitano de BH",
+    (Estrato == "3140010" |
+       Estrato == "3140020") ~ "04-RIDE de Brasília em Minas",
+    (
+      Estrato == "3151011" |
+        Estrato == "3151012" |
+        Estrato == "3151013" |
+        Estrato == "3151021" |
+        Estrato == "3151022" |
+        Estrato == "3151023"
+    ) ~ "05-Sul de Minas",
+    (
+      Estrato == "3152011" |
+        Estrato == "3152012" |
+        Estrato == "3152013" |
+        Estrato == "3152021" |
+        Estrato == "3152022"
+    ) ~ "06-Triângulo Mineiro",
+    (
+      Estrato == "3153011" |
+        Estrato == "3153012" |
+        Estrato == "3153013" |
+        Estrato == "3153021" |
+        Estrato == "3153022" |
+        Estrato == "3153023"
+    ) ~ "07-Mata de Minas Gerais",
+    (
+      Estrato == "3154011" |
+        Estrato == "3154012" |
+        Estrato == "3154013" |
+        Estrato == "3154021" |
+        Estrato == "3154022" |
+        Estrato == "3154023"
+    ) ~ "08-Norte de Minas",
+    (
+      Estrato == "3155011" |
+        Estrato == "3155012" |
+        Estrato == "3155013" |
+        Estrato == "3155021" |
+        Estrato == "3155022" |
+        Estrato == "3155023"
+    ) ~ "09-Vale do Rio Doce",
+    (
+      Estrato == "3156011" |
+        Estrato == "3156012" |
+        Estrato == "3156013" |
+        Estrato == "3156021" |
+        Estrato == "3156022"
+    ) ~ "10-Central"
+    )
+  )
+
+
+```
+Tabela 5436 - Rendimento médio mensal real das pessoas de 14 anos ou mais de idade ocupadas na semana de referência com rendimento de trabalho, habitualmente e efetivamente recebidos no trabalho principal e em todos os trabalhos, por sexo
+
+# Calcular a Massa de rendimento mensal nominal efetiva (VD4017)
+
+```{r dados, echo=TRUE, warning=FALSE}
+
+massa_nominal <- svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas"), svytotal, na.rm=TRUE)
+
+massa_nominalcv <- round(cv(svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas"), svytotal, na.rm=TRUE))*100,1)
+
+knitr::kable(massa_nominal,
+             caption = "Massa de rendimento mensal nominal efetivamente recebida, por estratos geográficos - Minas Gerais - 2022 - Trabalho principal")
+
+knitr::kable(massa_nominalcv,
+             caption = "Coeficiente de variação - Massa de rendimento mensal nominal efetivamente recebida, por estratos geográficos - Minas Gerais - 2022 - Trabalho principal")
+
+```
+
+
+# Calcular a Massa de rendimento mensal nominal média efetiva (VD4017)
+
+```{r dados, echo=TRUE, warning=FALSE}
+
+media_massa_nominal <- svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas"), svymean, na.rm=TRUE)
+
+media_massa_nominalcv <- round(cv(svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas"), svymean, na.rm=TRUE))*100,1)
+
+knitr::kable(media_massa_nominal,
+             caption = "Massa de rendimento mensal nominal média efetivamente recebida, por estratos geográficos - Minas Gerais - 2022 -  Trabalho principal")
+
+knitr::kable(media_massa_nominalcv,
+             caption = "Coeficiente de variação - Massa de rendimento mensal nominal média efetivamente recebida, por estratos geográficos - Minas Gerais - 2022 -  Trabalho principal")
+```
+
+
+#Calcular a Massa de rendimento mensal nominal média efetiva (VD4017), para homens ocupados
+
+```{r dados, echo=TRUE, warning=FALSE}
+
+media_massa_nominal_h <- svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas" & V2007=="Homem"), svymean, na.rm=TRUE)
+
+media_massa_nominal_hcv <- round(cv(svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas" & V2007=="Homem"), svymean, na.rm=TRUE))*100,1)
+
+knitr::kable(media_massa_nominal_h,
+             caption = "Massa de rendimento mensal nominal média efetivamente recebida - homens ocupados, por estratos geográficos - Minas Gerais - 2022 -  Trabalho principal")
+
+knitr::kable(media_massa_nominal_hcv,
+             caption = "Coeficiente de variação - Massa de rendimento mensal nominal média efetivamente recebida - homens ocupados, por estratos geográficos - Minas Gerais - 2022 -  Trabalho principal")
+```
+
+#Calcular a Massa de rendimento mensal nominal média efetiva (VD4017), para mulheres ocupadas
+
+```{r dados, echo=TRUE, warning=FALSE}
+
+media_massa_nominal_m <- svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas" & V2007=="Mulher"), svymean, na.rm=TRUE)
+
+media_massa_nominal_mcv <- round(cv(svyby(~rend, by = ~estratos_geogr, subset(dadosPNADc, VD4002=="Pessoas ocupadas" & V2007=="Mulher"), svymean, na.rm=TRUE))*100,1)
+
+knitr::kable(media_massa_nominal_m,
+             caption = "Massa de rendimento mensal nominal média efetivamente recebida - mulheres ocupadas, por estratos geográficos - Minas Gerais - 2022 -  Trabalho principal")
+
+knitr::kable(media_massa_nominal_mcv,
+             caption = "Coeficiente de variação - Massa de rendimento mensal nominal média efetivamente recebida - mulheres ocupadas, por estratos geográficos - Minas Gerais - 2022 -  Trabalho principal")
+```
