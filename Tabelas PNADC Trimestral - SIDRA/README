@@ -3,3 +3,8 @@ Olá!
 Esta pasta armazena as tabelas reproduzidas do SIDRA para os estratos geográficos de Minas Gerais no período entre 2012 e 2024. 
 Link das tabelas reproduzidas do SIDRA/IBGE: https://sidra.ibge.gov.br/pesquisa/pnadct/tabelas
 
+Há seis pastas, com categorias principais de informações. Dentro de cada pasta, existem tabelas específicas. 
+
+Dentro de cada pasta de tabela há dois arquivos
+      1 -  Data frame do R que empilha os dados do período para todos os estratos geográficos de MG
+      2 -  Script em R que possibilitou a geração do data frame
