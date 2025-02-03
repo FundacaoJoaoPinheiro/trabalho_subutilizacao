@@ -6,5 +6,5 @@ Link das tabelas reproduzidas do SIDRA/IBGE: https://sidra.ibge.gov.br/pesquisa/
 Há seis pastas, com categorias principais de informações. Dentro de cada pasta, existem tabelas específicas. 
 
 Dentro de cada pasta de tabela há dois arquivos
-      1 -  Data frame do R que empilha os dados do período para todos os estratos geográficos de MG
+      1 -  Data frame do R que empilha os dados do período para todos os estratos geográficos de MG (em formato .RDS)
       2 -  Script em R que possibilitou a geração do data frame
