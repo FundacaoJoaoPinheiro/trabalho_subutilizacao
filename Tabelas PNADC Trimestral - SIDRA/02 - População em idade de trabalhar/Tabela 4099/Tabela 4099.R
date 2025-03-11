@@ -46,21 +46,33 @@ calcula_ocup_desocup <- function(mesano){
     update(
       #Criação das variáveis para população, conforme variável VD4007
       
+      #População em idade ativa
       pia = as.numeric(V2009 >= 14),
       
+      
+      #Força de trabalho
       ft = 1 * (VD4001==1),
       
-      ocupados = ifelse(pia == 1 , as.numeric(VD4002 %in% 1) , NA),
-      desocupados = ifelse(pia==1, as.numeric(VD4002 %in% 2), NA),
       
+      #Ocupados e desocupados
+      ocupados = ifelse(pia == 1 , as.numeric(VD4002== 1) , NA),
+      desocupados = ifelse(pia==1, as.numeric(VD4002==2), NA),
+      
+      #Força de trabalho potencial
       ftpotencial = 1 * (VD4003==1),
+      
+      #Força de trabalho ampliada (ocupados, desocupados e força de trabalho potencial)
       ftampliada = 1 * (VD4002==1 | VD4002==2 | ftpotencial==1),
       
-      num1 = ifelse(pia==1 & (VD4004==1 | VD4002==2), 1, NA),
+      #Subocupação por insuficiencia de horas - VD4004 até 2015 / VD4004A após 2015, conforme dicionario
+      #num1 = subocupados por insuficiencia de horas e desocupados
+      num1 = ifelse(pia==1 & (VD4004==1 | VD4002==2), 1, 0),
       
-      num2 = ifelse(pia==1 & (VD4002==2 | ftpotencial==1), 1, NA),
+      #desocupados e força de trabalho potencial
+      num2 = ifelse(pia==1 & (VD4002==2 | ftpotencial==1), 1, 0),
       
-      num3 = ifelse(pia==1 & (VD4002==2 | VD4004==1 | ftpotencial==1), 1, NA),
+      #desocupados, subocupados por insuficiencia de horas e força de trabalho potencial
+      num3 = ifelse(pia==1 & (VD4002==2 | VD4004==1 | ftpotencial==1), 1, 0),
   
       
       #one = 1 * (ocupada1==1 | ocupada2==1 | ocupada3==1 | ocupada4==1 | ocupada5==1 | ocupada6==1 | ocupada7==1 | ocupada8==1 | ocupada9==1 | ocupada10==1 | ocupada11==1),
@@ -103,6 +115,7 @@ calcula_ocup_desocup <- function(mesano){
   #estimativas_t <- svyby(~one, by = ~regioes, subset(pnadc, UF == "31"), vartype="cv", na.rm = TRUE, svytotal)
   #colnames(estimativas_t)[3]<-"cv_t"
   
+  
   #Taxa de desocupação
   #Razão entre a População desocupada / População na força de trabalho
   estimativas_1 <- svyby(~desocupados, denominator=~ft, by = ~regioes, subset(pnadc, UF =="31"), vartype="cv", na.rm = TRUE, svyratio)
@@ -110,16 +123,22 @@ calcula_ocup_desocup <- function(mesano){
   colnames(estimativas_1)[3]<-"cv1"
   
   #Taxa combinada da subocupação por insuficiência de horas trabalhadas e da desocupação (TCSIeD)
+  #Numerador - Subocupados por insuficiência de horas + desocupados
+  #Denominador - Força de Trabalho
   estimativas_2 <- svyby(~num1, denominator=~ft, by = ~regioes, subset(pnadc, UF =="31"), vartype="cv", na.rm = TRUE, svyratio)
   colnames(estimativas_2)[2]<-"tcdsiht"
   colnames(estimativas_2)[3]<-"cv2"
   
   #Taxa combinada da desocupação e da força de trabalho potencial
+  #Numerador - Desocupados + Força de Trabalho Potencial
+  #Denominador - Força de Trabalho Ampliada
   estimativas_3 <- svyby(~num2, denominator=~ftampliada, by = ~regioes, subset(pnadc, UF =="31"), vartype="cv", na.rm = TRUE, svyratio)
   colnames(estimativas_3)[2]<-"tcdftp"
   colnames(estimativas_3)[3]<-"cv3"
   
   #Taxa composta da subutilização da força de trabalho
+  #Numerador - Subocupados por insuficiência de horas + desocupados + força de trabalho potencial
+  #Denominador - Força de Trabalho ampliada
   estimativas_4 <- svyby(~num3, denominator=~ftampliada, by = ~regioes, subset(pnadc, UF =="31"), vartype="cv", na.rm = TRUE, svyratio)
   colnames(estimativas_4)[2]<-"tcsft"
   colnames(estimativas_4)[3]<-"cv4"
@@ -190,7 +209,7 @@ calcula_ocup_desocup <- function(mesano){
 lista <- c(012012,012013,012014,012015,012016,012017,012018,012019,012020,012021,012022,012023,012024,
            022012,022013,022014,022015,022016,022017,022018,022019,022020,022021,022022,022023,022024,
            032012,032013,032014,032015,032016,032017,032018,032019,032020,032021,032022,032023,032024,
-           042012,042013,042014,042015,042016,042017,042018,042019,042020,042021,042022,042023)
+           042012,042013,042014,042015,042016,042017,042018,042019,042020,042021,042022,042023,042024)
 
 sapply(lista, function(i) calcula_ocup_desocup(i))
 
