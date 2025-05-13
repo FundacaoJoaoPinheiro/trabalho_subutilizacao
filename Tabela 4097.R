@@ -64,7 +64,7 @@ calcula_ocup_desocup <- function(mesano){
         Estrato %in% c("3154011","3154012","3154013","3154021","3154022","3154023","3140010","3140020") ~"06-Norte de MG + RIDE de Brasília em Minas",
         Estrato %in% c("3155011","3155012","3155013","3155021","3155022","3155023") ~"07-Vale do Rio Doce",
         Estrato %in% c("3156011","3156012","3156013","3156021","3156022") ~"08-Central",
-        TRUE ~ "11 - Minas Gerais")
+        TRUE ~ "09 - Minas Gerais")
       # regioes
     )
   # Criando estimativas regionais (reescrevendo parte do código)
