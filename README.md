@@ -19,13 +19,13 @@ Abra uma issue neste repositório ou contate-nos via: dados@fjp.mg.gov.br
 
 ## Scripts e Tabelas reproduzidas do Sidra IBGE
 
-População total
+__População total__
 
 Tabela 5917 - População, por sexo
 
 
 
-População em idade de trabalhar
+__População em idade de trabalhar__
 
 Tabela 4092 - Pessoas de 14 anos ou mais de idade, por condição em relação à força de trabalho e condição de ocupação
 
@@ -37,7 +37,7 @@ Tabela 6398 - Pessoas de 14 anos ou mais de idade, por tipo de medida de subutil
 
 
 
-População ocupada
+__População ocupada__
 
 Tabela 4097 - Pessoas de 14 anos ou mais de idade, ocupadas na semana de referência, por posição na ocupação e categoria do emprego no trabalho principal
 
@@ -53,7 +53,7 @@ Tabela 6385 - Pessoas de 14 anos ou mais de idade, ocupadas na semana de referê
 
 
 
-Rendimento médio da população ocupada, com rendimento de trabalho
+__Rendimento médio da população ocupada, com rendimento de trabalho__
 
 Tabela 5436 - Rendimento médio mensal real das pessoas de 14 anos ou mais de idade ocupadas na semana de referência com rendimento de trabalho, habitualmente e efetivamente recebidos no trabalho principal e em todos os trabalhos, por sexo
 
@@ -61,6 +61,6 @@ Tabela 6405 - Rendimento médio mensal real das pessoas de 14 anos ou mais de id
 
 
 
-Massa de rendimento da população ocupada, com rendimento de trabalho
+__Massa de rendimento da população ocupada, com rendimento de trabalho__
 
 Tabela 5606 - Massa de rendimento mensal real das pessoas de 14 anos ou mais de idade ocupadas na semana de referência com rendimento de trabalho, habitualmente e efetivamente recebidos em todos os trabalhos
